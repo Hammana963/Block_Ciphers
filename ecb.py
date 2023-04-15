@@ -36,6 +36,6 @@ if start < len(bitData):
 #add header back on
 cipherText = header + cipherText
 
-with open("ECB_text.bmp", "wb") as f:
+with open("ECB__encoded_image.bmp", "wb") as f:
   f.write(cipherText)
 

@@ -40,6 +40,6 @@ for i in range((len(bitData) // 128) - 2):
 #add header back on
 cipherText = header + cipherText
 
-with open("CBC_text.bmp", "wb") as f:
+with open("CBC_encoded_image.bmp", "wb") as f:
   f.write(cipherText)
 

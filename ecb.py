@@ -18,20 +18,24 @@ cipher = AES.new(key, AES.MODE_ECB)
 with open("mustang.bmp", "rb") as f:
   bitData = f.read()
 
+#save header of bmp file (128 works on my mac)
 header = bitData[0:128]
 cipherText = bytes()
 
 start = 128
 
 for i in range((len(bitData) // 128) - 1):
+  # encrypt 128 blocks, and add them together
   cipherText += cipher.encrypt(bitData[start:start+128])
   start += 128
 
+#pad the final block if it isnt long enough
 if start < len(bitData):
   cipherText += cipher.encrypt(pad(bitData[start:start+128]))
-  
+
+#add header back on
 cipherText = header + cipherText
 
-with open("ECB10_text.bmp", "wb") as f:
+with open("ECB_text.bmp", "wb") as f:
   f.write(cipherText)
 

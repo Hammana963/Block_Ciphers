@@ -42,4 +42,3 @@ cipherText = header + cipherText
 
 with open("CBC_encoded_image.bmp", "wb") as f:
   f.write(cipherText)
-

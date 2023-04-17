@@ -1,7 +1,6 @@
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 import urllib.parse
-import sys
 import math
 from cbc import byte_xor
 
@@ -14,7 +13,7 @@ def pad(data):
     else:
         return data + (padValue).to_bytes() * padValue
 
-#generate key and iv
+#generate random key and iv (thats used in both submit and verify function)
 key = get_random_bytes(16)
 iv = get_random_bytes(16)
 cipher = AES.new(key, AES.MODE_ECB)
@@ -23,6 +22,7 @@ def submit(input):
     newstring = 'userid=456;userdata='
     parsedinput = urllib.parse.quote(input)     #URL encode user input
     newstring += parsedinput
+    print(newstring[24])
     newstring += ';session-id=31337'
     bytestring = bytes(newstring, 'utf-8')
     bytestring = pad(bytestring)
@@ -30,6 +30,7 @@ def submit(input):
 
     xoredtext = byte_xor(iv, bytestring[:128])  #first xor with iv
     encrypttext = cipher.encrypt(xoredtext)     #encrypt text
+    #changing the data of the cipher block before target plaintext block
     ciphertext += encrypttext                   #add encrypted text to cipher text
     start = 16
     #Do CBC encrypt on rest of plaintext using prev encrypt text to xor plaintext
@@ -54,11 +55,31 @@ def verify(input):
         plaintext += byte_xor(prevcipher, decrypttext)
         prevcipher = ciphertext
         start += 16
-    return plaintext
-        
-#example
-#cipherres = (submit("Hello"))
-#print(cipherres)
-#plaintext = verify(cipherres)
-#print(plaintext)
 
+    plaintext = str(plaintext)
+    print(plaintext)
+    if ";admin=true;" in plaintext:
+        return True
+    else:
+        return False
+
+
+#input that you can easily flip two bits to make ;admin=true;
+cipherres = (submit("flipmadminetrue"))
+
+#these two lines do A xor B xor C
+changedchar = byte_xor((cipherres[8]).to_bytes(), bytes('m', 'utf-8'))
+changedchar = byte_xor(changedchar, bytes(';', 'utf-8'))
+
+secondchar = byte_xor((cipherres[14]).to_bytes(), bytes('e', 'utf-8'))
+secondchar = byte_xor(secondchar, bytes('=', 'utf-8'))
+
+#adds two flipped bits into previous cipher text
+newciphertext = cipherres[:8]
+newciphertext += changedchar
+newciphertext += cipherres[9:14]
+newciphertext += secondchar
+newciphertext += cipherres[15:]
+
+newplaintext = verify(newciphertext)
+print(newplaintext)
